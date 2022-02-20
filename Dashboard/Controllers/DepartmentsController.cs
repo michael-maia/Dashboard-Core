@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Dashboard.Data;
 using Dashboard.Models;
+using Dashboard.Configuration;
 
 namespace Dashboard.Controllers
 {
@@ -16,17 +17,22 @@ namespace Dashboard.Controllers
     public class DepartmentsController : ControllerBase
     {
         private readonly DashboardContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DepartmentsController(DashboardContext context)
+        public DepartmentsController(IUnitOfWork unitOfWork, DashboardContext context)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
+
         }
 
         // GET: api/Departments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            return await _context.Departments.ToListAsync();
+            var departments = await _unitOfWork.Department.All();
+            return Ok(departments);
+            //return await _context.Departments.ToListAsync();
         }
 
         // GET: api/Departments/5
