@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Dashboard.Data;
 using Dashboard.Models;
 using Dashboard.Configuration;
+using Dashboard.Services.Interfaces;
 
 namespace Dashboard.Controllers
 {
@@ -18,19 +19,20 @@ namespace Dashboard.Controllers
     {
         private readonly DashboardContext _context;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IDepartmentService _service;
 
-        public DepartmentsController(IUnitOfWork unitOfWork, DashboardContext context)
+        public DepartmentsController(IUnitOfWork unitOfWork, DashboardContext context, IDepartmentService service)
         {
             _context = context;
             _unitOfWork = unitOfWork;
-
+            _service = service;
         }
 
         // GET: api/Departments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            var departments = await _unitOfWork.Department.All();
+            var departments = await _service.ListDepartments();
             return Ok(departments);
             //return await _context.Departments.ToListAsync();
         }

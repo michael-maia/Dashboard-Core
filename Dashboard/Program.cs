@@ -1,8 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Dashboard.Models;
 using Dashboard.Data;
-using Microsoft.Extensions.DependencyInjection;
-using System.Data;
 using System.Data.SqlClient;
 using Dashboard.Configuration;
 
@@ -11,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddControllers();
+// Adiciona as classes da camada de Serviços que serão usados na API (https://stackoverflow.com/questions/62210000/problem-registering-services-for-di-in-net-core-3)
+builder.Services.AddApplicationServices();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
