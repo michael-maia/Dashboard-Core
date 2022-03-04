@@ -20,35 +20,63 @@ namespace Dashboard.Controllers
         private readonly DashboardContext _context;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDepartmentService _service;
+        private readonly ILogger _logger;
 
-        public DepartmentsController(IUnitOfWork unitOfWork, DashboardContext context, IDepartmentService service)
+        public DepartmentsController(IUnitOfWork unitOfWork, DashboardContext context, IDepartmentService service, ILogger<DepartmentsController> logger)
         {
             _context = context;
             _unitOfWork = unitOfWork;
             _service = service;
+            _logger = logger;
         }
 
         // GET: api/Departments
+        // Retrieve all data stored
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            var departments = await _service.ListDepartments();
-            return Ok(departments);
-            //return await _context.Departments.ToListAsync();
+            _logger.LogInformation($"[{DateTime.Now}] LOG: Executing GET api/Departments");
+            try
+            {
+                var departments = await _service.ListDepartments();
+                if (departments.Count() == 0)
+                {
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: Nothing was found");
+                    return StatusCode(StatusCodes.Status404NotFound);                    
+                }
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Returning data found");
+                return StatusCode(StatusCodes.Status200OK, departments);                
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
-        // GET: api/Departments/5
+        // GET: api/Departments/{ID}
+        // Retrieve data stored based on ID passed as parameter
         [HttpGet("{id}")]
         public async Task<ActionResult<Department>> GetDepartment(int id)
         {
-            var department = await _context.Departments.FindAsync(id);
-
-            if (department == null)
+            _logger.LogInformation($"[{DateTime.Now}] LOG: Executing GET api/Departments/{{id}}");
+            try
             {
-                return NotFound();
-            }
+                var department = await _service.GetDepartmentById(id);                
 
-            return department;
+                if (department == null)
+                {
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: Nothing was found.");
+                    return StatusCode(StatusCodes.Status404NotFound);
+                }
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Returning data found");
+                return StatusCode(StatusCodes.Status200OK, department);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         // PUT: api/Departments/5
@@ -84,13 +112,27 @@ namespace Dashboard.Controllers
 
         // POST: api/Departments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Create a new department
         [HttpPost]
         public async Task<ActionResult<Department>> PostDepartment(Department department)
-        {
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetDepartment", new { id = department.DepartmentID }, department);
+        {            
+            _logger.LogInformation($"[{DateTime.Now}] LOG: Executing POST api/Departments");
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    await _service.CreateDepartment(department);
+                    _logger.LogInformation($"[{DateTime.Now}] LOG: Department created!");
+                    return StatusCode(StatusCodes.Status201Created, department);
+                }
+                _logger.LogInformation($"[{DateTime.Now}] LOG: Request body is missing information");
+                return StatusCode(StatusCodes.Status400BadRequest);               
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"[{DateTime.Now}] ERROR: {e}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         // DELETE: api/Departments/5

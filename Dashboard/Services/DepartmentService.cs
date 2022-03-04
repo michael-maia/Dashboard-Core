@@ -18,5 +18,16 @@ namespace Dashboard.Services
         {            
             return await _unitOfWork.Department.All();
         }
+
+        public async Task<Department> GetDepartmentById(int id)
+        {
+            return await _unitOfWork.Department.GetById(id);
+        }
+
+        public async Task CreateDepartment(Department department)
+        {            
+            await _unitOfWork.Department.Add(department);
+            await _unitOfWork.CompleteAsync();                                   
+        }
     }
 }
